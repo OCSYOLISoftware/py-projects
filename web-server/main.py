@@ -1,9 +1,10 @@
-import store
-from fastapi import FastAPI, Request
+import pandas as pd
+from fastapi import FastAPI, Request, File, UploadFile, Form
 from fastapi.responses import HTMLResponse, FileResponse
 #Ayuda a importar archivos CSS y JS
 from fastapi.staticfiles import StaticFiles 
 from fastapi.templating import Jinja2Templates
+
 
 app = FastAPI()
 
@@ -12,15 +13,55 @@ app.mount("/static", StaticFiles(directory="./public/static"), name="static")
 templates = Jinja2Templates(directory="public/templates")
 
 
-@app.get('/')
-def get_list():
-    return [1,2,3]
+@app.get('/', response_class=HTMLResponse)
+def get_list(request: Request):
+    return templates.TemplateResponse("item.html", {"request": request})
 
-#Ruta statica
+#Cargar CSV
+@app.post("/upload-csv", response_class=HTMLResponse)
+def upload_csv(request: Request, file: UploadFile = File(...)):
+    global dataframe
+
+    # Leer el archivo CSV utilizando Pandas
+    try:
+        dataframe = pd.read_csv(file.file)
+    except Exception as e:
+        return templates.TemplateResponse("error.html", {"request": request, "message": "Error al leer el archivo CSV."})
+
+    # Convertir el DataFrame a HTML
+    table_html = dataframe.to_html(classes="table table-striped", index=False)
+
+    # Renderizar la tabla HTML
+    return templates.TemplateResponse("display_csv.html", {
+        "request": request,
+        "table": table_html,
+        "columns": dataframe.columns.tolist()  # Lista de columnas para el formulario de filtrado
+    })
+
+#Filtrar CSV
+@app.post("/filter-csv", response_class=HTMLResponse)
+def filter_csv(request: Request, filterColumn: str = Form(...), filterValue: str = Form(...)):
+    global dataframe
+
+    if dataframe is None:
+        return templates.TemplateResponse("error.html", {"request": request, "message": "No hay datos cargados."})
+
+    # Aplicar filtro al DataFrame
+    filtered_df = dataframe[dataframe[filterColumn].astype(str).str.contains(filterValue, case=False, na=False)]
+
+    # Convertir el DataFrame filtrado a HTML
+    table_html = filtered_df.to_html(classes="table table-striped", index=False)
+
+    # Renderizar la tabla HTML
+    return templates.TemplateResponse("display_csv.html", {
+        "request": request,
+        "table": table_html,
+        "columns": dataframe.columns.tolist()  # Lista de columnas para el formulario de filtrado
+    })
+
 @app.get('/contact', response_class=HTMLResponse)
-def get_list():
-    html_address = "./public/static/html/index.html"
-    return FileResponse(html_address, status_code=200)
+def get_list(request: Request):
+    return templates.TemplateResponse("item.html", {"request":request}, status_code=200)
 
 @app.get("/template/{id}", response_class=HTMLResponse)
 def template(request: Request, id:str):
@@ -28,7 +69,6 @@ def template(request: Request, id:str):
 
 
 def run():
-    store.get_categories()
     
-if __name__ == '__main__':
-    run()
+    if __name__ == '__main__':
+        run()
