@@ -1,49 +1,31 @@
 import store
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, FileResponse
+#Ayuda a importar archivos CSS y JS
+from fastapi.staticfiles import StaticFiles 
+from fastapi.templating import Jinja2Templates
 
 app = FastAPI()
+
+app.mount("/static", StaticFiles(directory="./public/static"), name="static")
+
+templates = Jinja2Templates(directory="public/templates")
+
 
 @app.get('/')
 def get_list():
     return [1,2,3]
 
+#Ruta statica
 @app.get('/contact', response_class=HTMLResponse)
 def get_list():
-    return """
-        <h1>Hola soy una pagina </h1>
-        <p> parrafo</p>
-         <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Cambiar Color de Fondo</title>
-        <style>
-            body {
-                background-color: white;
-                text-align: center;
-                padding-top: 50px;
-            }
-            button {
-                padding: 10px 20px;
-                font-size: 16px;
-            }
-        </style>
-    </head>
-    <body>
-        <button onclick="changeBackgroundColor()">Cambiar Color de Fondo</button>
+    html_address = "./public/static/html/index.html"
+    return FileResponse(html_address, status_code=200)
 
-        <script>
-            function changeBackgroundColor() {
-                // Cambia el color de fondo a un color aleatorio
-                const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
-                document.body.style.backgroundColor = randomColor;
-            }
-        </script>
-    </body>
-    </html>
-"""
+@app.get("/template/{id}", response_class=HTMLResponse)
+def template(request: Request, id:str):
+    return templates.TemplateResponse("item.html", {"request": request, "id":id})
+
 
 def run():
     store.get_categories()
