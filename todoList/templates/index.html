@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Tareas</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', path='./css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Gestor de Tareas</h1>
+
+        <form action="/add-task" method="post" class="mb-4">
+            <input type="text" name="task_name" class="form-control" placeholder="Nueva tarea" required>
+            <button type="submit" class="btn btn-primary mt-2">Agregar Tarea</button>
+        </form>
+
+        <ul class="list-group">
+            {% for task in tasks %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span {% if task.completed %}class="text-muted"{% endif %}>{{ task.name }}</span>
+                    <div>
+                        <form action="/toggle-task" method="post" class="d-inline">
+                            <input type="hidden" name="task_index" value="{{ loop.index0 }}">
+                            <button type="submit" class="btn btn-secondary btn-sm">
+                                {% if task.completed %}Marcar Pendiente{% else %}Marcar Completada{% endif %}
+                            </button>
+                        </form>
+                        <form action="/delete-task" method="post" class="d-inline">
+                            <input type="hidden" name="task_index" value="{{ loop.index0 }}">
+                            <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                        </form>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
