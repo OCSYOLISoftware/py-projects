@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, Response, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from controller.user import User
-from lib.check_password import check_user
+from lib.check_passw import check_user
 
 app = FastAPI()
 
