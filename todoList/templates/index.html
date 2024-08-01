@@ -24,7 +24,7 @@
                         <form action="/toggle-task" method="post" class="d-inline">
                             <input type="hidden" name="task_index" value="{{ loop.index0 }}">
                             <button type="submit" class="btn btn-secondary btn-sm">
-                                {% if task.completed %}Marcar Pendiente{% else %}Marcar Completada{% endif %}
+                                {% if task.completed %}Pendiente{% else %}Completada{% endif %}
                             </button>
                         </form>
                         <form action="/delete-task" method="post" class="d-inline">
